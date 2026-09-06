@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { AmbientEngine } from '$lib/synth.js';
 	import { CC_MAP, parseMidiMessage, noteName } from '$lib/midi.js';
-	import { subscribeMidi } from '$lib/router.js';
+	import { bus } from '$lib/bus.js';
 	import Knob from '$lib/Knob.svelte';
 
 	const engine = new AmbientEngine();
@@ -79,7 +79,7 @@
 
 	onMount(() => {
 		// Réception TabMidi
-		const unsub = subscribeMidi((bytes) => {
+		const unsub = bus.onMidi((bytes) => {
 			const m = parseMidiMessage(bytes);
 			// Filtre de canal : en mode non-omni, on ignore ce qui n'est pas notre canal.
 			if (channel !== null && 'channel' in m && m.channel !== channel) return;
@@ -104,7 +104,7 @@
 		const loop = () => { target = Math.min(1, held.size / 6); level += (target - level) * 0.06; glow = level; raf = requestAnimationFrame(loop); };
 		loop();
 
-		return () => { unsub(); window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); cancelAnimationFrame(raf); };
+		return () => { unsub(); cancelAnimationFrame(raf); };
 	});
 </script>
 
